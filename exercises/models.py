@@ -1,24 +1,23 @@
 from django.db import models
 
 
-class Exercises(models.Model):
+class Exercise(models.Model):
     class Meta:
         db_table = "exercises"
-    user_id = int
+    user_id = models.IntegerField()
     name = models.CharField(max_length=255)
     description = models.CharField(max_length=255)
     image_path = models.CharField(max_length=255)
-    date = models.DateTimeField(auto_now_add=True)
 
 
-class ExerciseBodyParts(models.Model):
+class ExerciseBodyPart(models.Model):
     class Meta:
         db_table = "exercise_body_parts"
-    exercise_id = int
-    body_part_id = int
+    exercise_id = models.IntegerField()
+    body_part_id = models.IntegerField()
 
 
-class BodyParts(models.Model):
+class BodyPart(models.Model):
     class Meta:
         db_table = "body_parts"
     name = models.CharField(max_length=255)

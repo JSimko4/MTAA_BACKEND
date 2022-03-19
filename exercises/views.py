@@ -1,31 +1,10 @@
-from django.db import connection
-from django.http import JsonResponse, HttpResponse
-from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+
+from users.models import User
+from .models import Exercise, BodyPart
 from .serializers import ExerciseSerializer
-from .models import Exercise
-
-
-# def user_exercises(request, user_id: int):
-#     try:
-#         cursor = connection.cursor()
-#         cursor.execute("SELECT VERSION();")
-#         version = cursor.fetchone()[0]
-#
-#         cursor.close()
-#         connection.close()
-#
-#         return JsonResponse({
-#             "mysql": {
-#                 "test mysql version": version,
-#                 "user_id": user_id
-#             }
-#         })
-#
-#     except Exception as error:
-#         return HttpResponse(f"Error while connecting to PostgreSQL {error}")
 
 
 class GetBodyPartsView(APIView):
@@ -39,29 +18,36 @@ class GetFilterExercisesView(APIView):
 
 
 class GetExerciseView(APIView):
-    # prerobit aby zaroven vracalo aj body parts
-    def get(self, request, user_id: int):
-        item = Exercise.objects.get(user_id=user_id)
+    def get(self, request, exercise_id: int):
+        item = Exercise.objects.get(id=exercise_id)
         serializer = ExerciseSerializer(item)
         return Response({"status": "success", "data": serializer.data}, status=status.HTTP_200_OK)
 
 
 class GetAllExercisesView(APIView):
-    # prerobit aby zaroven vracalo aj body parts
-    def get(self, request):
-        items = Exercise.objects.all()
-        serializer = ExerciseSerializer(items, many=True)
+    def get(self, request, user_id: int):
+        exercises = Exercise.objects.filter(user=user_id)
+        serializer = ExerciseSerializer(exercises, many=True)
         return Response({"status": "success", "data": serializer.data}, status=status.HTTP_200_OK)
 
 
 class SaveExerciseView(APIView):
     def post(self, request, user_id: int):
-        request.data["user_id"] = user_id
 
         serializer = ExerciseSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
-            return Response({"status": "success", "data": serializer.data}, status=status.HTTP_200_OK)
+            # pridat osetrenie ked neexistuje dany user -> zla url id
+            new_exercise = Exercise.objects.create(user=User.objects.get(id=user_id), name=request.data["name"],
+                                                   description=request.data["description"], image_path=request.data["image_path"])
+            new_exercise.save()
+
+            # pridat osetrenie ak neexistuje dany body part
+            body_parts = request.data["body_parts"]
+            for body_part_id in body_parts:
+                body_part = BodyPart.objects.get(id=body_part_id)
+                new_exercise.body_parts.add(body_part)
+
+            return Response({"status": "success"}, status=status.HTTP_200_OK)
         else:
             return Response({"status": "error", "data": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 

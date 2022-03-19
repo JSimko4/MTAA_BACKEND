@@ -1,13 +1,15 @@
 from rest_framework import serializers
-from .models import Exercise
+from .models import Exercise, BodyPart
+
+
+class ExerciseBodyPartSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BodyPart
+        fields = ('id', 'name')
 
 
 class ExerciseSerializer(serializers.ModelSerializer):
-    user_id = serializers.IntegerField()
-    name = serializers.CharField(max_length=255)
-    description = serializers.CharField(max_length=255)
-    image_path = serializers.CharField(max_length=255)
-
     class Meta:
         model = Exercise
-        fields = '__all__'
+        fields = ['id', 'name', 'description', 'image_path', 'body_parts']
+        depth = 1

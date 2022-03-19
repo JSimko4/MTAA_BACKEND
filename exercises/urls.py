@@ -3,10 +3,10 @@ from .views import GetBodyPartsView, GetFilterExercisesView, GetExerciseView, Ge
     SaveExerciseView, EditExerciseView, DeleteExerciseView
 
 urlpatterns = [
-    path("<int:user_id>/body_parts", GetBodyPartsView.as_view()),
-    path("<int:user_id>/body_parts", GetFilterExercisesView.as_view()),
-    path("<int:user_id>/", GetExerciseView.as_view()),
-    path("<int:user_id>/body_parts", GetAllExercisesView.as_view()),
+    path("body_parts/", GetBodyPartsView.as_view()),
+    path("filter_exercises/", GetFilterExercisesView.as_view()),
+    path("<int:exercise_id>/", GetExerciseView.as_view()),
+    path("<int:user_id>/all/", GetAllExercisesView.as_view()),
     path("<int:user_id>/save_exercise/", SaveExerciseView.as_view()),
     path("<int:user_id>/edit/", EditExerciseView.as_view()),
     path("<int:user_id>/delete/", DeleteExerciseView.as_view())

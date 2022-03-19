@@ -39,20 +39,19 @@ class GetFilterExercisesView(APIView):
 
 
 class GetExerciseView(APIView):
-    def get(self, request, id=None):
-        if id:
-            item = Exercise.objects.get(id=id)
-            serializer = ExerciseSerializer(item)
-            return Response({"status": "success", "data": serializer.data}, status=status.HTTP_200_OK)
-
-        items = Exercise.objects.all()
-        serializer = ExerciseSerializer(items, many=True)
+    # prerobit aby zaroven vracalo aj body parts
+    def get(self, request, user_id: int):
+        item = Exercise.objects.get(user_id=user_id)
+        serializer = ExerciseSerializer(item)
         return Response({"status": "success", "data": serializer.data}, status=status.HTTP_200_OK)
 
 
 class GetAllExercisesView(APIView):
+    # prerobit aby zaroven vracalo aj body parts
     def get(self, request):
-        print("x")
+        items = Exercise.objects.all()
+        serializer = ExerciseSerializer(items, many=True)
+        return Response({"status": "success", "data": serializer.data}, status=status.HTTP_200_OK)
 
 
 class SaveExerciseView(APIView):

@@ -11,5 +11,5 @@ class ExerciseBodyPartSerializer(serializers.ModelSerializer):
 class ExerciseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Exercise
-        fields = ['id', 'name', 'description', 'image_path', 'body_parts']
+        fields = ('id', 'name', 'description', 'image_path', 'body_parts')
         depth = 1

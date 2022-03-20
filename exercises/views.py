@@ -23,7 +23,7 @@ class GetExerciseView(APIView):
             serializer = ExerciseSerializer(exercise)
             return Response({"status": "success", "data": serializer.data}, status=status.HTTP_200_OK)
         except Exercise.DoesNotExist:
-            return Response({"status": "error"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"status": "error - exercise not found"}, status=status.HTTP_404_NOT_FOUND)
 
 
 class GetAllExercisesView(APIView):
@@ -41,7 +41,7 @@ class SaveExerciseView(APIView):
             try:
                 url_user = User.objects.get(id=user_id)
             except User.DoesNotExist:
-                return Response({"status": "error"}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"status": "error - user not found"}, status=status.HTTP_404_NOT_FOUND)
 
             new_exercise = Exercise.objects.create(user=url_user, name=request.data["name"],
                                                    description=request.data["description"],
@@ -56,7 +56,7 @@ class SaveExerciseView(APIView):
                         body_part = BodyPart.objects.get(id=body_part_id)
                         new_exercise.body_parts.add(body_part)
                     except BodyPart.DoesNotExist:
-                        return Response({"status": "error"}, status=status.HTTP_400_BAD_REQUEST)
+                        return Response({"status": "error - body part not found"}, status=status.HTTP_404_NOT_FOUND)
 
             return Response({"status": "success"}, status=status.HTTP_200_OK)
         else:
@@ -74,7 +74,7 @@ class EditExerciseView(APIView):
             else:
                 return Response({"status": "error", "data": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         except Exercise.DoesNotExist:
-            return Response({"status": "error"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"status": "error - not found"}, status=status.HTTP_404_NOT_FOUND)
 
 
 class DeleteExerciseView(APIView):

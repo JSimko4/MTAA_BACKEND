@@ -35,11 +35,15 @@ class GetAllExercisesView(APIView):
 
 class SaveExerciseView(APIView):
     def post(self, request, user_id: int):
-
         serializer = ExerciseSerializer(data=request.data)
+
         if serializer.is_valid():
-            # pridat osetrenie ked neexistuje dany user -> zla url id
-            new_exercise = Exercise.objects.create(user=User.objects.get(id=user_id), name=request.data["name"],
+            try:
+                url_user = User.objects.get(id=user_id)
+            except User.DoesNotExist:
+                return Response({"status": "error"}, status=status.HTTP_400_BAD_REQUEST)
+
+            new_exercise = Exercise.objects.create(user=url_user, name=request.data["name"],
                                                    description=request.data["description"],
                                                    image_path=request.data["image_path"])
             new_exercise.save()
@@ -47,10 +51,12 @@ class SaveExerciseView(APIView):
             if "body_parts" in request.data:
                 body_parts = request.data["body_parts"]
 
-                # pridat osetrenie ak neexistuje dany body part
                 for body_part_id in body_parts:
-                    body_part = BodyPart.objects.get(id=body_part_id)
-                    new_exercise.body_parts.add(body_part)
+                    try:
+                        body_part = BodyPart.objects.get(id=body_part_id)
+                        new_exercise.body_parts.add(body_part)
+                    except BodyPart.DoesNotExist:
+                        return Response({"status": "error"}, status=status.HTTP_400_BAD_REQUEST)
 
             return Response({"status": "success"}, status=status.HTTP_200_OK)
         else:

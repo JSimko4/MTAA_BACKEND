@@ -8,6 +8,6 @@ urlpatterns = [
     path("<int:exercise_id>/", GetExerciseView.as_view()),
     path("<int:user_id>/all/", GetAllExercisesView.as_view()),
     path("<int:user_id>/save_exercise/", SaveExerciseView.as_view()),
-    path("<int:user_id>/edit/", EditExerciseView.as_view()),
-    path("<int:user_id>/delete/", DeleteExerciseView.as_view())
+    path("<int:exercise_id>/edit/", EditExerciseView.as_view()),
+    path("<int:exercise_id>/delete/", DeleteExerciseView.as_view())
 ]

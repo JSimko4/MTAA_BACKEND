@@ -64,10 +64,17 @@ class SaveExerciseView(APIView):
 
 
 class EditExerciseView(APIView):
-    def put(self, request):
-        print("x")
+    def put(self, request, exercise_id: int):
+        exercise = Exercise.objects.get(id=exercise_id)
+        
+        serializer = ExerciseSerializer(exercise, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"status": "success", "data": serializer.data})
+        else:
+            return Response({"status": "error", "data": serializer.errors})
 
 
 class DeleteExerciseView(APIView):
-    def delete(self, request):
+    def delete(self, request, exercise_id: int):
         print("x")

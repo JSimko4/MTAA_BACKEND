@@ -1,3 +1,4 @@
+from rest_framework.generics import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -74,9 +75,11 @@ class EditExerciseView(APIView):
             else:
                 return Response({"status": "error", "data": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         except Exercise.DoesNotExist:
-            return Response({"status": "error - not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"status": "error - exercise not found"}, status=status.HTTP_404_NOT_FOUND)
 
 
 class DeleteExerciseView(APIView):
     def delete(self, request, exercise_id: int):
-        print("x")
+        exercise = get_object_or_404(Exercise, id=exercise_id)
+        exercise.delete()
+        return Response({"status": "success", "data": "Item Deleted"})

@@ -65,14 +65,16 @@ class SaveExerciseView(APIView):
 
 class EditExerciseView(APIView):
     def put(self, request, exercise_id: int):
-        exercise = Exercise.objects.get(id=exercise_id)
-        
-        serializer = ExerciseSerializer(exercise, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({"status": "success", "data": serializer.data})
-        else:
-            return Response({"status": "error", "data": serializer.errors})
+        try:
+            exercise = Exercise.objects.get(id=exercise_id)
+            serializer = ExerciseSerializer(exercise, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({"status": "success", "data": serializer.data}, status=status.HTTP_200_OK)
+            else:
+                return Response({"status": "error", "data": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        except Exercise.DoesNotExist:
+            return Response({"status": "error"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class DeleteExerciseView(APIView):

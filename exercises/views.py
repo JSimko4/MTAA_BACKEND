@@ -18,9 +18,12 @@ class GetFilterExercisesView(APIView):
 
 class GetExerciseView(APIView):
     def get(self, request, exercise_id: int):
-        item = Exercise.objects.get(id=exercise_id)
-        serializer = ExerciseSerializer(item)
-        return Response({"status": "success", "data": serializer.data}, status=status.HTTP_200_OK)
+        try:
+            exercise = Exercise.objects.get(id=exercise_id)
+            serializer = ExerciseSerializer(exercise)
+            return Response({"status": "success", "data": serializer.data}, status=status.HTTP_200_OK)
+        except Exercise.DoesNotExist:
+            return Response({"status": "error"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class GetAllExercisesView(APIView):

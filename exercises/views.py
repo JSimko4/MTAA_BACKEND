@@ -165,7 +165,11 @@ class EditExerciseView(APIView):
 
 # je potrebne validovat token
 class DeleteExerciseView(APIView):
-    def delete(self, request, exercise_id: int):
+    def delete(self, request, exercise_id: int, access_token: str):
         exercise = get_object_or_404(Exercise, id=exercise_id)
+
+        if not validate_user(exercise.user_id, access_token):
+            return Response({"status": "forbidden"}, status=status.HTTP_403_FORBIDDEN)
+
         exercise.delete()
         return Response({"status": "success"})

@@ -12,5 +12,5 @@ urlpatterns = [
 
     path("<int:exercise_id>/", GetExerciseView.as_view()),
     path("<int:exercise_id>/edit/", EditExerciseView.as_view()),
-    path("<int:exercise_id>/delete/", DeleteExerciseView.as_view())
+    path("<int:exercise_id>/delete/<slug:access_token>", DeleteExerciseView.as_view())
 ]

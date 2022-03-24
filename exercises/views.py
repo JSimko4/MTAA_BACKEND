@@ -60,9 +60,6 @@ class CopyExerciseView(APIView):
         except (KeyError, TypeError):
             return Response({"status": "error - bad request"}, status=status.HTTP_400_BAD_REQUEST)
 
-        if not validate_user(user_id, access_token):
-            return Response({"status": "forbidden"}, status=status.HTTP_403_FORBIDDEN)
-
         try:
             user = User.objects.get(id=user_id)
         except User.DoesNotExist:
@@ -72,6 +69,9 @@ class CopyExerciseView(APIView):
             exercise = Exercise.objects.get(id=exercise_id)
         except Exercise.DoesNotExist:
             return Response({"status": "error - exercise not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        if not validate_user(user_id, access_token):
+            return Response({"status": "forbidden"}, status=status.HTTP_403_FORBIDDEN)
 
         exercise = Exercise.objects.create(user=user,
                                            creator=exercise.creator,
@@ -83,42 +83,55 @@ class CopyExerciseView(APIView):
         return Response({"status": "success"}, status=status.HTTP_200_OK)
 
 
+def validate_json_data(request):
+    try:
+        if not (isinstance(request.data["access_token"], str)):
+            raise TypeError
+
+        if not all(isinstance(j, int) for j in request.data["body_parts"]):
+            raise TypeError
+    except (KeyError, TypeError):
+        return Response({"status": "error - bad request"}, status=status.HTTP_400_BAD_REQUEST)
+
+    return None
+
+
 # je potrebne validovat token
 class SaveExerciseView(APIView):
     def post(self, request, user_id: int):
         serializer = ExerciseSerializer(data=request.data)
 
         if serializer.is_valid():
-            try:
-                access_token = request.data["access_token"]
+            response_after_check = validate_json_data(request)
+            if response_after_check is not None:
+                return response_after_check
 
-                if not (isinstance(access_token, str)):
-                    raise TypeError
-            except (KeyError, TypeError):
-                return Response({"status": "error - bad request"}, status=status.HTTP_400_BAD_REQUEST)
-
-            if not validate_user(user_id, access_token):
-                return Response({"status": "forbidden"}, status=status.HTTP_403_FORBIDDEN)
+            # check if all body parts exist
+            body_parts_list = []
+            for body_part_id in request.data["body_parts"]:
+                try:
+                    body_parts_list.append(BodyPart.objects.get(id=body_part_id))
+                except BodyPart.DoesNotExist:
+                    return Response({"status": "error - body part not found"}, status=status.HTTP_404_NOT_FOUND)
 
             try:
                 user_n_creator = User.objects.get(id=user_id)
             except User.DoesNotExist:
                 return Response({"status": "error - user not found"}, status=status.HTTP_404_NOT_FOUND)
 
-            new_exercise = Exercise.objects.create(user=user_n_creator, creator=user_n_creator, name=request.data["name"],
+            if not validate_user(user_id, request.data["access_token"]):
+                return Response({"status": "forbidden"}, status=status.HTTP_403_FORBIDDEN)
+
+            new_exercise = Exercise.objects.create(user=user_n_creator,
+                                                   creator=user_n_creator,
+                                                   name=request.data["name"],
                                                    description=request.data["description"],
                                                    image_path="TODOOOOOO")
             new_exercise.save()
 
-            if "body_parts" in request.data:
-                body_parts = request.data["body_parts"]
-
-                for body_part_id in body_parts:
-                    try:
-                        body_part = BodyPart.objects.get(id=body_part_id)
-                        new_exercise.body_parts.add(body_part)
-                    except BodyPart.DoesNotExist:
-                        return Response({"status": "error - body part not found"}, status=status.HTTP_404_NOT_FOUND)
+            # add body parts
+            for body_part in body_parts_list:
+                new_exercise.body_parts.add(body_part)
 
             return Response({"status": "success"}, status=status.HTTP_200_OK)
         else:
@@ -131,9 +144,34 @@ class EditExerciseView(APIView):
         try:
             exercise = Exercise.objects.get(id=exercise_id)
             serializer = ExerciseSerializer(exercise, data=request.data, partial=True)
+
             if serializer.is_valid():
+                response_after_check = validate_json_data(request)
+                if response_after_check is not None:
+                    return response_after_check
+
+                # check if all body parts exist
+                body_parts_list = []
+                for body_part_id in request.data["body_parts"]:
+                    try:
+                        body_parts_list.append(BodyPart.objects.get(id=body_part_id))
+                    except BodyPart.DoesNotExist:
+                        return Response({"status": "error - body part not found"}, status=status.HTTP_404_NOT_FOUND)
+
+                if not validate_user(exercise.user_id, request.data["access_token"]):
+                    return Response({"status": "forbidden"}, status=status.HTTP_403_FORBIDDEN)
+
                 serializer.save()
-                return Response({"status": "success", "data": serializer.data}, status=status.HTTP_200_OK)
+
+                # remove all exercise  body parts
+                for body_part in exercise.body_parts.all():
+                    exercise.body_parts.remove(body_part)
+
+                # add new/edited body parts
+                for body_part in body_parts_list:
+                    exercise.body_parts.add(body_part)
+
+                return Response({"status": "success"}, status=status.HTTP_200_OK)
             else:
                 return Response({"status": "error", "data": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         except Exercise.DoesNotExist:

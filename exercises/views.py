@@ -2,11 +2,10 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-
-from MTAA_BACKEND.utility import validate_user, validate_json_data
 from users.models import User
 from .models import Exercise, BodyPart
 from .serializers import ExerciseSerializer, BodyPartSerializer
+from MTAA_BACKEND.utility import validate_user, validate_json_data
 
 
 # access vsetci pouzivatelia neni potrebne validovat token

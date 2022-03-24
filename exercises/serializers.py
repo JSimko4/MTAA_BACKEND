@@ -14,11 +14,11 @@ class ExerciseSerializer(serializers.ModelSerializer):
     description = serializers.CharField(max_length=255)
     image_path = serializers.CharField(max_length=255)
     body_parts = BodyPartSerializer(read_only=True, many=True)
-    
+
     def get_creator(self, obj):
         return obj.creator.id
 
     class Meta:
         model = Exercise
-        fields = ('__all__')
+        fields = ('creator', 'name', 'description', 'image_path', 'body_parts')
         depth = 1

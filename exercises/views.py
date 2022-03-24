@@ -13,8 +13,13 @@ class GetBodyPartsView(APIView):
 
 
 class GetFilterExercisesView(APIView):
-    def get(self, request):
-        print("x")
+    def post(self, request, user_id: int):
+        # najdi cviky ktore splnaju aspon jeden z filtrov
+        exercises = Exercise.objects.filter(user=user_id,
+                                            body_parts__in=request.data["body_parts"])
+        serializer = ExerciseSerializer(exercises, many=True)
+
+        return Response({"status": "success", "data": serializer.data}, status=status.HTTP_200_OK)
 
 
 class GetExerciseView(APIView):

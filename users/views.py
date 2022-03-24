@@ -1,10 +1,22 @@
-from django.http import HttpResponse
-from django.shortcuts import render
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from users.models import User
+from users.serializers import UserSerializer
 
 
-def register(request):
-    return HttpResponse("register")
+class RegisterView(APIView):
+    def post(self, request):
+        return Response("xx")
 
 
-def login(request):
-    return HttpResponse("login")
+class LoginView(APIView):
+    def post(self, request):
+        return Response("xx")
+
+
+class GetAllUsersView(APIView):
+    def get(self, request):
+        users = User.objects.filter()
+        serializer = UserSerializer(users, many=True)
+        return Response({"status": "success", "data": serializer.data}, status=status.HTTP_200_OK)

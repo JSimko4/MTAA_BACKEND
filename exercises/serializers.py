@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import Exercise, BodyPart
-from users.serializers import UserSerializer
+
 
 class BodyPartSerializer(serializers.ModelSerializer):
     class Meta:

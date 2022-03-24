@@ -88,7 +88,10 @@ class SaveExerciseView(APIView):
     def post(self, request, user_id: int):
         serializer = ExerciseSerializer(data=request.data)
 
-        if serializer.is_valid() and not validate_json_data(request):
+        if serializer.is_valid():
+            if not validate_json_data(request):
+                return Response({"status": "error - bad request"}, status=status.HTTP_400_BAD_REQUEST)
+
             # check if all body parts exist
             body_parts_list = []
             for body_part_id in request.data["body_parts"]:
@@ -128,7 +131,10 @@ class EditExerciseView(APIView):
             exercise = Exercise.objects.get(id=exercise_id)
             serializer = ExerciseSerializer(exercise, data=request.data, partial=True)
 
-            if serializer.is_valid() and not validate_json_data(request):
+            if serializer.is_valid():
+                if not validate_json_data(request):
+                    return Response({"status": "error - bad request"}, status=status.HTTP_400_BAD_REQUEST)
+
                 # check if all body parts exist
                 body_parts_list = []
                 for body_part_id in request.data["body_parts"]:

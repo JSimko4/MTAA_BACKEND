@@ -6,3 +6,4 @@ class User(models.Model):
         db_table = "users"
     name = models.CharField(max_length=255)
     password = models.CharField(max_length=255)
+    access_token = models.CharField(max_length=255)

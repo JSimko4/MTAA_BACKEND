@@ -2,11 +2,14 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+
+from MTAA_BACKEND.auth import validate_user
 from users.models import User
 from .models import Exercise, BodyPart
 from .serializers import ExerciseSerializer, BodyPartSerializer
 
 
+# access vsetci pouzivatelia neni potrebne validovat token
 class GetBodyPartsView(APIView):
     def get(self, request):
         body_parts = BodyPart.objects.filter()
@@ -14,6 +17,7 @@ class GetBodyPartsView(APIView):
         return Response({"status": "success", "data": serializer.data}, status=status.HTTP_200_OK)
 
 
+# access vsetci pouzivatelia neni potrebne validovat token
 class GetFilterExercisesView(APIView):
     def post(self, request, user_id: int):
         # najdi cviky ktore splnaju aspon jeden z filtrov
@@ -24,6 +28,7 @@ class GetFilterExercisesView(APIView):
         return Response({"status": "success", "data": serializer.data}, status=status.HTTP_200_OK)
 
 
+# access vsetci pouzivatelia neni potrebne validovat token
 class GetExerciseView(APIView):
     def get(self, request, exercise_id: int):
         try:
@@ -34,6 +39,7 @@ class GetExerciseView(APIView):
             return Response({"status": "error - exercise not found"}, status=status.HTTP_404_NOT_FOUND)
 
 
+# access vsetci pouzivatelia neni potrebne validovat token
 class GetAllExercisesView(APIView):
     def get(self, request, user_id: int):
         exercises = Exercise.objects.filter(user=user_id)
@@ -41,16 +47,21 @@ class GetAllExercisesView(APIView):
         return Response({"status": "success", "data": serializer.data}, status=status.HTTP_200_OK)
 
 
+# je potrebne validovat token
 class CopyExerciseView(APIView):
     def post(self, request):
         try:
             user_id = request.data["user_id"]
             exercise_id = request.data["exercise_id"]
+            access_token = request.data["access_token"]
 
-            if not (isinstance(user_id, int) and isinstance(exercise_id, int)):
+            if not (isinstance(user_id, int) and isinstance(exercise_id, int) and isinstance(access_token, str)):
                 raise TypeError
         except (KeyError, TypeError):
             return Response({"status": "error - bad request"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not validate_user(user_id, access_token):
+            return Response({"status": "forbidden"}, status=status.HTTP_403_FORBIDDEN)
 
         try:
             user = User.objects.get(id=user_id)
@@ -72,11 +83,23 @@ class CopyExerciseView(APIView):
         return Response({"status": "success"}, status=status.HTTP_200_OK)
 
 
+# je potrebne validovat token
 class SaveExerciseView(APIView):
     def post(self, request, user_id: int):
         serializer = ExerciseSerializer(data=request.data)
 
         if serializer.is_valid():
+            try:
+                access_token = request.data["access_token"]
+
+                if not (isinstance(access_token, str)):
+                    raise TypeError
+            except (KeyError, TypeError):
+                return Response({"status": "error - bad request"}, status=status.HTTP_400_BAD_REQUEST)
+
+            if not validate_user(user_id, access_token):
+                return Response({"status": "forbidden"}, status=status.HTTP_403_FORBIDDEN)
+
             try:
                 user_n_creator = User.objects.get(id=user_id)
             except User.DoesNotExist:
@@ -84,7 +107,7 @@ class SaveExerciseView(APIView):
 
             new_exercise = Exercise.objects.create(user=user_n_creator, creator=user_n_creator, name=request.data["name"],
                                                    description=request.data["description"],
-                                                   image_path=request.data["image_path"])
+                                                   image_path="TODOOOOOO")
             new_exercise.save()
 
             if "body_parts" in request.data:
@@ -102,6 +125,7 @@ class SaveExerciseView(APIView):
             return Response({"status": "error", "data": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
+# je potrebne validovat token
 class EditExerciseView(APIView):
     def put(self, request, exercise_id: int):
         try:
@@ -116,6 +140,7 @@ class EditExerciseView(APIView):
             return Response({"status": "error - exercise not found"}, status=status.HTTP_404_NOT_FOUND)
 
 
+# je potrebne validovat token
 class DeleteExerciseView(APIView):
     def delete(self, request, exercise_id: int):
         exercise = get_object_or_404(Exercise, id=exercise_id)

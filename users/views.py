@@ -23,7 +23,7 @@ class RegisterView(APIView):
             return Response({"status": "fail - user name already registered"}, status=status.HTTP_409_CONFLICT)
 
         # create new user
-        access_token = get_random_string(length=255)
+        access_token = get_random_string(length=64)
         new_user = User.objects.create(name=name,
                                        password=password,
                                        access_token=access_token)
@@ -52,7 +52,6 @@ class LoginView(APIView):
             return Response({"status": "success", "access_token": user_db.access_token}, status=status.HTTP_200_OK)
 
         return Response({"status": "fail - wrong password"}, status=status.HTTP_401_UNAUTHORIZED)
-
 
 
 class GetAllUsersView(APIView):

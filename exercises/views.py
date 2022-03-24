@@ -40,11 +40,11 @@ class SaveExerciseView(APIView):
 
         if serializer.is_valid():
             try:
-                url_user = User.objects.get(id=user_id)
+                user_n_creator = User.objects.get(id=user_id)
             except User.DoesNotExist:
                 return Response({"status": "error - user not found"}, status=status.HTTP_404_NOT_FOUND)
 
-            new_exercise = Exercise.objects.create(user=url_user, name=request.data["name"],
+            new_exercise = Exercise.objects.create(user=user_n_creator, creator=user_n_creator, name=request.data["name"],
                                                    description=request.data["description"],
                                                    image_path=request.data["image_path"])
             new_exercise.save()
@@ -82,4 +82,4 @@ class DeleteExerciseView(APIView):
     def delete(self, request, exercise_id: int):
         exercise = get_object_or_404(Exercise, id=exercise_id)
         exercise.delete()
-        return Response({"status": "success", "data": "Item Deleted"})
+        return Response({"status": "success"})

@@ -41,6 +41,37 @@ class GetAllExercisesView(APIView):
         return Response({"status": "success", "data": serializer.data}, status=status.HTTP_200_OK)
 
 
+class CopyExerciseView(APIView):
+    def post(self, request):
+        try:
+            user_id = request.data["user_id"]
+            exercise_id = request.data["exercise_id"]
+
+            if not (isinstance(user_id, int) and isinstance(exercise_id, int)):
+                raise TypeError
+        except (KeyError, TypeError):
+            return Response({"status": "error - bad request"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return Response({"status": "error - user not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            exercise = Exercise.objects.get(id=exercise_id)
+        except Exercise.DoesNotExist:
+            return Response({"status": "error - exercise not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        exercise = Exercise.objects.create(user=user,
+                                           creator=exercise.creator,
+                                           name=exercise.name,
+                                           description=exercise.description,
+                                           image_path=exercise.image_path)
+        exercise.save()
+
+        return Response({"status": "success"}, status=status.HTTP_200_OK)
+
+
 class SaveExerciseView(APIView):
     def post(self, request, user_id: int):
         serializer = ExerciseSerializer(data=request.data)

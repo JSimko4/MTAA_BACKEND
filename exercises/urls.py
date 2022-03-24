@@ -1,9 +1,10 @@
 from django.urls import path
 from .views import GetBodyPartsView, GetFilterExercisesView, GetExerciseView, GetAllExercisesView, \
-    SaveExerciseView, EditExerciseView, DeleteExerciseView
+    SaveExerciseView, EditExerciseView, DeleteExerciseView, CopyExerciseView
 
 urlpatterns = [
     path("body_parts/", GetBodyPartsView.as_view()),
+    path("copy_exercise/", CopyExerciseView.as_view()),
 
     path("<int:user_id>/filter_exercises/", GetFilterExercisesView.as_view()),
     path("<int:user_id>/all/", GetAllExercisesView.as_view()),

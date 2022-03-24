@@ -9,13 +9,14 @@ class BodyPartSerializer(serializers.ModelSerializer):
 
 
 class ExerciseSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
-    creator = UserSerializer(read_only=True)
-
+    creator = serializers.SerializerMethodField()
     name = serializers.CharField(max_length=255)
     description = serializers.CharField(max_length=255)
     image_path = serializers.CharField(max_length=255)
-    body_parts = serializers.ListField(child = serializers.IntegerField())
+    body_parts = BodyPartSerializer(read_only=True, many=True)
+    
+    def get_creator(self, obj):
+        return obj.creator.id
 
     class Meta:
         model = Exercise

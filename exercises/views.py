@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 
-from MTAA_BACKEND.auth import validate_user
+from MTAA_BACKEND.utility import validate_user, validate_json_data
 from users.models import User
 from .models import Exercise, BodyPart
 from .serializers import ExerciseSerializer, BodyPartSerializer
@@ -83,29 +83,12 @@ class CopyExerciseView(APIView):
         return Response({"status": "success"}, status=status.HTTP_200_OK)
 
 
-def validate_json_data(request):
-    try:
-        if not (isinstance(request.data["access_token"], str)):
-            raise TypeError
-
-        if not all(isinstance(j, int) for j in request.data["body_parts"]):
-            raise TypeError
-    except (KeyError, TypeError):
-        return Response({"status": "error - bad request"}, status=status.HTTP_400_BAD_REQUEST)
-
-    return None
-
-
 # je potrebne validovat token
 class SaveExerciseView(APIView):
     def post(self, request, user_id: int):
         serializer = ExerciseSerializer(data=request.data)
 
-        if serializer.is_valid():
-            response_after_check = validate_json_data(request)
-            if response_after_check is not None:
-                return response_after_check
-
+        if serializer.is_valid() and not validate_json_data(request):
             # check if all body parts exist
             body_parts_list = []
             for body_part_id in request.data["body_parts"]:
@@ -145,11 +128,7 @@ class EditExerciseView(APIView):
             exercise = Exercise.objects.get(id=exercise_id)
             serializer = ExerciseSerializer(exercise, data=request.data, partial=True)
 
-            if serializer.is_valid():
-                response_after_check = validate_json_data(request)
-                if response_after_check is not None:
-                    return response_after_check
-
+            if serializer.is_valid() and not validate_json_data(request):
                 # check if all body parts exist
                 body_parts_list = []
                 for body_part_id in request.data["body_parts"]:
@@ -173,7 +152,7 @@ class EditExerciseView(APIView):
 
                 return Response({"status": "success"}, status=status.HTTP_200_OK)
             else:
-                return Response({"status": "error", "data": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"status": "error - bad request", "data": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         except Exercise.DoesNotExist:
             return Response({"status": "error - exercise not found"}, status=status.HTTP_404_NOT_FOUND)
 

@@ -88,6 +88,7 @@ class SaveExerciseView(APIView):
         serializer = ExerciseSerializer(data=request.data)
 
         if serializer.is_valid():
+            # check if access token & body parts are in json
             if not validate_json_data(request):
                 return Response({"status": "error - bad request"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -131,6 +132,7 @@ class EditExerciseView(APIView):
             serializer = ExerciseSerializer(exercise, data=request.data, partial=True)
 
             if serializer.is_valid():
+                # check if access token & body parts are in json
                 if not validate_json_data(request):
                     return Response({"status": "error - bad request"}, status=status.HTTP_400_BAD_REQUEST)
 

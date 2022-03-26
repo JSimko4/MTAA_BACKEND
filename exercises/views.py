@@ -29,7 +29,7 @@ class GetFilterExercisesView(APIView):
 
         # najdi cviky ktore splnaju aspon jeden z filtrov
         exercises = Exercise.objects.filter(user=user_id,
-                                            body_parts__in=request.data["body_parts"])
+                                            body_parts__in=request.data["body_parts"]).distinct()
         serializer = ExerciseSerializer(exercises, many=True)
 
         return Response({"status": "success", "data": serializer.data}, status=status.HTTP_200_OK)

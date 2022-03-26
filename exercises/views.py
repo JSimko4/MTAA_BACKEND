@@ -19,6 +19,14 @@ class GetBodyPartsView(APIView):
 # access vsetci pouzivatelia neni potrebne validovat token
 class GetFilterExercisesView(APIView):
     def post(self, request, user_id: int):
+        try:
+            body_parts = request.data["body_parts"]
+
+            if not all(isinstance(j, int) for j in body_parts):
+                raise TypeError
+        except (KeyError, TypeError):
+            return Response({"status": "error - bad request"}, status=status.HTTP_400_BAD_REQUEST)
+
         # najdi cviky ktore splnaju aspon jeden z filtrov
         exercises = Exercise.objects.filter(user=user_id,
                                             body_parts__in=request.data["body_parts"])
@@ -72,12 +80,16 @@ class CopyExerciseView(APIView):
         if not validate_user(user_id, access_token):
             return Response({"status": "forbidden"}, status=status.HTTP_403_FORBIDDEN)
 
-        exercise = Exercise.objects.create(user=user,
-                                           creator=exercise.creator,
-                                           name=exercise.name,
-                                           description=exercise.description,
-                                           image_path=exercise.image_path)
-        exercise.save()
+        new_exercise = Exercise.objects.create(user=user,
+                                               creator=exercise.creator,
+                                               name=exercise.name,
+                                               description=exercise.description,
+                                               image_path=exercise.image_path)
+        new_exercise.save()
+
+        # add body parts
+        for body_part in exercise.body_parts.all():
+            new_exercise.body_parts.add(body_part)
 
         return Response({"status": "success"}, status=status.HTTP_200_OK)
 

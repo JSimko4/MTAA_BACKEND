@@ -8,7 +8,7 @@ filters:
 {"body_parts": [1, 4]}
 
 copy_exercise:
-{"user_id": 1, "exercise_id": 5, "access_token": "g7Mqc9hEBQ7v7fWJQO9yzHUIfPQaosgz6wss8OahXVrbAxPU702kduXtVnPfqTuW"}
+{"user_id": 1, "exercise_id": 2, "access_token": "g7Mqc9hEBQ7v7fWJQO9yzHUIfPQaosgz6wss8OahXVrbAxPU702kduXtVnPfqTuW"}
 
 register / login:
 {"name": "kubo", "password": "test"}

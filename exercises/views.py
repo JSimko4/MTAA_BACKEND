@@ -1,4 +1,5 @@
 import os
+import pathlib
 import uuid
 
 from django.http import JsonResponse, HttpResponse
@@ -125,11 +126,26 @@ class SaveExerciseView(APIView):
             if not validate_user(user_id, request.data["access_token"]):
                 return Response({"status": "forbidden"}, status=status.HTTP_403_FORBIDDEN)
 
+            if request.FILES.get("image", None) is not None:
+                img = request.FILES["image"]
+                img_extension = os.path.splitext(img.name)[1]
+
+                image_name = str(uuid.uuid4()) + str(uuid.uuid4())
+                save_path = "static/images"
+                pathlib.Path(save_path).mkdir(parents=True, exist_ok=True)
+
+                img_save_path = "%s/%s%s" % (save_path, image_name, img_extension)
+                with open(img_save_path, "wb+") as f:
+                    for chunk in img.chunks():
+                        f.write(chunk)
+            else:
+                return HttpResponse("WHERE FOTKA")
+
             new_exercise = Exercise.objects.create(user=user_n_creator,
                                                    creator=user_n_creator,
                                                    name=request.data["name"],
                                                    description=request.data["description"],
-                                                   image_path="TODOOOOOO")
+                                                   image_path=img_save_path)
             new_exercise.save()
 
             # add body parts

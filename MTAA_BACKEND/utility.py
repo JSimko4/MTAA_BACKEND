@@ -10,19 +10,3 @@ def validate_user(user_id: int, token: str,):
         return True
 
     return False
-
-
-# validate json for save/edit
-def validate_json_data(request):
-    try:
-        access_token = request.data["access_token"]
-        body_parts = request.data["body_parts"]
-
-        if not (isinstance(access_token, str)):
-            raise TypeError
-
-        if not all(isinstance(j, int) for j in body_parts):
-            raise TypeError
-    except (KeyError, TypeError):
-        return False
-    return True

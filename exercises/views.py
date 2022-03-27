@@ -1,3 +1,7 @@
+import os
+import uuid
+
+from django.http import JsonResponse, HttpResponse
 from rest_framework.generics import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -5,7 +9,7 @@ from rest_framework import status
 from users.models import User
 from .models import Exercise, BodyPart
 from .serializers import ExerciseSerializer, BodyPartSerializer
-from MTAA_BACKEND.utility import validate_user, validate_json_data
+from MTAA_BACKEND.utility import validate_user
 
 
 # access vsetci pouzivatelia neni potrebne validovat token
@@ -20,16 +24,13 @@ class GetBodyPartsView(APIView):
 class GetFilterExercisesView(APIView):
     def post(self, request, user_id: int):
         try:
-            body_parts = request.data["body_parts"]
-
-            if not all(isinstance(j, int) for j in body_parts):
-                raise TypeError
-        except (KeyError, TypeError):
+            body_parts = list(map(int, request.data["body_parts"].split(',')))
+        except (KeyError, ValueError):
             return Response({"status": "error - bad request"}, status=status.HTTP_400_BAD_REQUEST)
 
         # najdi cviky ktore splnaju aspon jeden z filtrov
         exercises = Exercise.objects.filter(user=user_id,
-                                            body_parts__in=request.data["body_parts"]).distinct()
+                                            body_parts__in=body_parts).distinct()
         serializer = ExerciseSerializer(exercises, many=True)
 
         return Response({"status": "success", "data": serializer.data}, status=status.HTTP_200_OK)
@@ -100,13 +101,17 @@ class SaveExerciseView(APIView):
         serializer = ExerciseSerializer(data=request.data)
 
         if serializer.is_valid():
-            # check if access token & body parts are in json
-            if not validate_json_data(request):
-                return Response({"status": "error - bad request"}, status=status.HTTP_400_BAD_REQUEST)
+            try:
+                body_parts = list(map(int, request.data["body_parts"].split(',')))
+                access_token = request.data["access_token"]
+                if not isinstance(access_token, str):
+                    raise TypeError
+            except (KeyError, ValueError, TypeError):
+                return Response({"status": "error - bad request access token / body parts"}, status=status.HTTP_400_BAD_REQUEST)
 
             # check if all body parts exist
             body_parts_list = []
-            for body_part_id in request.data["body_parts"]:
+            for body_part_id in body_parts:
                 try:
                     body_parts_list.append(BodyPart.objects.get(id=body_part_id))
                 except BodyPart.DoesNotExist:
@@ -144,13 +149,18 @@ class EditExerciseView(APIView):
             serializer = ExerciseSerializer(exercise, data=request.data, partial=True)
 
             if serializer.is_valid():
-                # check if access token & body parts are in json
-                if not validate_json_data(request):
-                    return Response({"status": "error - bad request"}, status=status.HTTP_400_BAD_REQUEST)
+                try:
+                    body_parts = list(map(int, request.data["body_parts"].split(',')))
+                    access_token = request.data["access_token"]
+                    if not isinstance(access_token, str):
+                        raise TypeError
+                except (KeyError, ValueError, TypeError):
+                    return Response({"status": "error - bad request access token / body parts"},
+                                    status=status.HTTP_400_BAD_REQUEST)
 
                 # check if all body parts exist
                 body_parts_list = []
-                for body_part_id in request.data["body_parts"]:
+                for body_part_id in body_parts:
                     try:
                         body_parts_list.append(BodyPart.objects.get(id=body_part_id))
                     except BodyPart.DoesNotExist:

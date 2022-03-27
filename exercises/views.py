@@ -131,7 +131,7 @@ class SaveExerciseView(APIView):
                 img_extension = os.path.splitext(img.name)[1]
 
                 image_name = str(uuid.uuid4()) + str(uuid.uuid4())
-                save_path = "static/images"
+                save_path = "images"
                 pathlib.Path(save_path).mkdir(parents=True, exist_ok=True)
 
                 img_save_path = "%s/%s%s" % (save_path, image_name, img_extension)
@@ -209,6 +209,10 @@ class DeleteExerciseView(APIView):
 
         if not validate_user(exercise.user_id, access_token):
             return Response({"status": "forbidden"}, status=status.HTTP_403_FORBIDDEN)
+
+        if os.path.exists(exercise.image_path):
+            os.remove(exercise.image_path)
+            print("hello")
 
         exercise.delete()
         return Response({"status": "success"})

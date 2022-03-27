@@ -1,5 +1,6 @@
 import os
 import pathlib
+import shutil
 import uuid
 
 from django.http import JsonResponse, HttpResponse
@@ -82,11 +83,17 @@ class CopyExerciseView(APIView):
         if not validate_user(user_id, access_token):
             return Response({"status": "forbidden"}, status=status.HTTP_403_FORBIDDEN)
 
+        img_extension = exercise.image_path.split(".")[1]
+        copy_name = str(uuid.uuid4()) + str(uuid.uuid4())
+        copy_path = "%s/%s.%s" % ("images/", copy_name, img_extension)
+
+        shutil.copy(exercise.image_path, copy_path)
+
         new_exercise = Exercise.objects.create(user=user,
                                                creator=exercise.creator,
                                                name=exercise.name,
                                                description=exercise.description,
-                                               image_path=exercise.image_path)
+                                               image_path=copy_path)
         new_exercise.save()
 
         # add body parts
@@ -130,8 +137,8 @@ class SaveExerciseView(APIView):
                 img = request.FILES["image"]
                 img_extension = os.path.splitext(img.name)[1]
 
-                image_name = str(uuid.uuid4()) + str(uuid.uuid4())
                 save_path = "images"
+                image_name = str(uuid.uuid4()) + str(uuid.uuid4())
                 pathlib.Path(save_path).mkdir(parents=True, exist_ok=True)
 
                 img_save_path = "%s/%s%s" % (save_path, image_name, img_extension)
@@ -139,7 +146,7 @@ class SaveExerciseView(APIView):
                     for chunk in img.chunks():
                         f.write(chunk)
             else:
-                return HttpResponse("WHERE FOTKA")
+                return Response({"status": "error - bad request - missing image"}, status=status.HTTP_400_BAD_REQUEST)
 
             new_exercise = Exercise.objects.create(user=user_n_creator,
                                                    creator=user_n_creator,

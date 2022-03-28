@@ -82,7 +82,7 @@ class CopyExerciseView(APIView):
 
         img_extension = exercise.image_path.split(".")[1]
         copy_name = str(uuid.uuid4()) + str(uuid.uuid4())
-        copy_path = "%s/%s.%s" % ("images/", copy_name, img_extension)
+        copy_path = "%s/%s.%s" % ("images", copy_name, img_extension)
 
         shutil.copy(exercise.image_path, copy_path)
 
@@ -158,7 +158,7 @@ class SaveExerciseView(APIView):
 
             return Response({"status": "success"}, status=status.HTTP_200_OK)
         else:
-            return Response({"status": "error", "data": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"status": "bad request", "data": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 # je potrebne validovat token

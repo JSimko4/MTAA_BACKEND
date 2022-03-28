@@ -1,14 +1,14 @@
 save/edit cviku:
-{"name": "namee", "description": "xd", "body_parts": "1,4", "access_token": "g7Mqc9hEBQ7v7fWJQO9yzHUIfPQaosgz6wss8OahXVrbAxPU702kduXtVnPfqTuW"}
+{"name": "namee", "description": "xd", "body_parts": "1,4", "image": "image.png", "access_token": "286pRZrFGl1VRJuRKOZMsIdTDk480mOrbr9z70mFQ3JGKvDfkcLHjAv6152LV5wt"}
 
 delete cviku:
-http://127.0.0.1:8000/exercises/6/delete/g7Mqc9hEBQ7v7fWJQO9yzHUIfPQaosgz6wss8OahXVrbAxPU702kduXtVnPfqTuW
+http://127.0.0.1:8000/exercises/6/delete/286pRZrFGl1VRJuRKOZMsIdTDk480mOrbr9z70mFQ3JGKvDfkcLHjAv6152LV5wt
 
 filter_exercises:
 {"body_parts": "1,4"}
 
 copy_exercise:
-{"user_id": 1, "exercise_id": 2, "access_token": "g7Mqc9hEBQ7v7fWJQO9yzHUIfPQaosgz6wss8OahXVrbAxPU702kduXtVnPfqTuW"}
+{"user_id": 1, "exercise_id": 2, "access_token": "286pRZrFGl1VRJuRKOZMsIdTDk480mOrbr9z70mFQ3JGKvDfkcLHjAv6152LV5wt"}
 
 register / login:
 {"name": "kubo", "password": "test"}

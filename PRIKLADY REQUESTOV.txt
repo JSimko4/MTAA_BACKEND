@@ -4,7 +4,7 @@ save/edit cviku:
 delete cviku:
 http://127.0.0.1:8000/exercises/6/delete/g7Mqc9hEBQ7v7fWJQO9yzHUIfPQaosgz6wss8OahXVrbAxPU702kduXtVnPfqTuW
 
-filters:
+filter_exercises:
 {"body_parts": "1,4"}
 
 copy_exercise:

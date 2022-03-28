@@ -236,4 +236,4 @@ class DeleteExerciseView(APIView):
             os.remove(exercise.image_path)
 
         exercise.delete()
-        return Response({"status": "success"})
+        return Response({"status": "success"}, status=status.HTTP_200_OK)

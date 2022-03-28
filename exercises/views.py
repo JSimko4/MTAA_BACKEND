@@ -2,9 +2,6 @@ import os
 import pathlib
 import shutil
 import uuid
-
-from django.http import JsonResponse, HttpResponse
-from rest_framework.generics import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -28,7 +25,7 @@ class GetFilterExercisesView(APIView):
         try:
             body_parts = list(map(int, request.data["body_parts"].split(',')))
         except (KeyError, ValueError):
-            return Response({"status": "error - bad request"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"status": "bad request"}, status=status.HTTP_400_BAD_REQUEST)
 
         # najdi cviky ktore splnaju aspon jeden z filtrov
         exercises = Exercise.objects.filter(user=user_id,
@@ -46,7 +43,7 @@ class GetExerciseView(APIView):
             serializer = ExerciseSerializer(exercise)
             return Response({"status": "success", "data": serializer.data}, status=status.HTTP_200_OK)
         except Exercise.DoesNotExist:
-            return Response({"status": "error - exercise not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"status": "exercise not found"}, status=status.HTTP_404_NOT_FOUND)
 
 
 # access vsetci pouzivatelia neni potrebne validovat token
@@ -68,17 +65,17 @@ class CopyExerciseView(APIView):
             if not (isinstance(user_id, int) and isinstance(exercise_id, int) and isinstance(access_token, str)):
                 raise TypeError
         except (KeyError, TypeError):
-            return Response({"status": "error - bad request"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"status": "bad request"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             user = User.objects.get(id=user_id)
         except User.DoesNotExist:
-            return Response({"status": "error - user not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"status": "user not found"}, status=status.HTTP_404_NOT_FOUND)
 
         try:
             exercise = Exercise.objects.get(id=exercise_id)
         except Exercise.DoesNotExist:
-            return Response({"status": "error - exercise not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"status": "exercise not found"}, status=status.HTTP_404_NOT_FOUND)
 
         if not validate_user(user_id, access_token):
             return Response({"status": "forbidden"}, status=status.HTTP_403_FORBIDDEN)
@@ -115,7 +112,7 @@ class SaveExerciseView(APIView):
                 if not isinstance(access_token, str):
                     raise TypeError
             except (KeyError, ValueError, TypeError):
-                return Response({"status": "error - bad request access token / body parts"}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"status": "bad request missing access token or body parts"}, status=status.HTTP_400_BAD_REQUEST)
 
             # check if all body parts exist
             body_parts_list = []
@@ -123,12 +120,12 @@ class SaveExerciseView(APIView):
                 try:
                     body_parts_list.append(BodyPart.objects.get(id=body_part_id))
                 except BodyPart.DoesNotExist:
-                    return Response({"status": "error - body part not found"}, status=status.HTTP_404_NOT_FOUND)
+                    return Response({"status": "body part not found"}, status=status.HTTP_404_NOT_FOUND)
 
             try:
                 user_n_creator = User.objects.get(id=user_id)
             except User.DoesNotExist:
-                return Response({"status": "error - user not found"}, status=status.HTTP_404_NOT_FOUND)
+                return Response({"status": "user not found"}, status=status.HTTP_404_NOT_FOUND)
 
             if not validate_user(user_id, request.data["access_token"]):
                 return Response({"status": "forbidden"}, status=status.HTTP_403_FORBIDDEN)
@@ -146,7 +143,7 @@ class SaveExerciseView(APIView):
                     for chunk in img.chunks():
                         f.write(chunk)
             else:
-                return Response({"status": "error - bad request - missing image"}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"status": "bad request - missing image"}, status=status.HTTP_400_BAD_REQUEST)
 
             new_exercise = Exercise.objects.create(user=user_n_creator,
                                                    creator=user_n_creator,
@@ -228,7 +225,10 @@ class EditExerciseView(APIView):
 # je potrebne validovat token
 class DeleteExerciseView(APIView):
     def delete(self, request, exercise_id: int, access_token: str):
-        exercise = get_object_or_404(Exercise, id=exercise_id)
+        try:
+            exercise = Exercise.objects.get(id=exercise_id)
+        except Exercise.DoesNotExist:
+            return Response({"status": "exercise not found"}, status=status.HTTP_404_NOT_FOUND)
 
         if not validate_user(exercise.user_id, access_token):
             return Response({"status": "forbidden"}, status=status.HTTP_403_FORBIDDEN)

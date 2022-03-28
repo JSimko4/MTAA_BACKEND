@@ -49,6 +49,11 @@ class GetExerciseView(APIView):
 # access vsetci pouzivatelia neni potrebne validovat token
 class GetAllExercisesView(APIView):
     def get(self, request, user_id: int):
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return Response({"status": "user not found"}, status=status.HTTP_404_NOT_FOUND)
+
         exercises = Exercise.objects.filter(user=user_id)
         serializer = ExerciseSerializer(exercises, many=True)
         return Response({"status": "success", "data": serializer.data}, status=status.HTTP_200_OK)
@@ -158,7 +163,7 @@ class SaveExerciseView(APIView):
 
             return Response({"status": "success"}, status=status.HTTP_200_OK)
         else:
-            return Response({"status": "bad request", "data": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"status": "bad request"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 # je potrebne validovat token
@@ -216,7 +221,7 @@ class EditExerciseView(APIView):
 
                 return Response({"status": "success"}, status=status.HTTP_200_OK)
             else:
-                return Response({"status": "bad request", "data": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"status": "bad request"}, status=status.HTTP_400_BAD_REQUEST)
         except Exercise.DoesNotExist:
             return Response({"status": "exercise not found"}, status=status.HTTP_404_NOT_FOUND)
 

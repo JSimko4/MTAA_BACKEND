@@ -9,12 +9,16 @@ class BodyPartSerializer(serializers.ModelSerializer):
 
 
 class ExerciseSerializer(serializers.ModelSerializer):
+    id = serializers.SerializerMethodField()
     creator_id = serializers.SerializerMethodField()
     creator_name = serializers.SerializerMethodField()
     name = serializers.CharField(max_length=255)
     description = serializers.CharField(max_length=255)
     image_path = serializers.CharField(max_length=255, required=False)
     body_parts = BodyPartSerializer(read_only=True, many=True)
+
+    def get_id(self, obj):
+        return obj.id
 
     def get_creator_id(self, obj):
         return obj.creator.id
@@ -24,5 +28,5 @@ class ExerciseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Exercise
-        fields = ('creator_id', 'creator_name', 'name', 'description', 'image_path', 'body_parts')
+        fields = ('id', 'creator_id', 'creator_name', 'name', 'description', 'image_path', 'body_parts')
         depth = 1

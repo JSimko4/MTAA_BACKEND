@@ -65,7 +65,7 @@ class CopyExerciseView(APIView):
         try:
             user_id = request.data["user_id"]
             exercise_id = request.data["exercise_id"]
-            access_token = request.data["access_token"]
+            access_token = request.headers.get("access-token-api")
 
             if not (isinstance(user_id, int) and isinstance(exercise_id, int) and isinstance(access_token, str)):
                 raise TypeError
@@ -113,7 +113,7 @@ class SaveExerciseView(APIView):
         if serializer.is_valid():
             try:
                 body_parts = list(map(int, request.data["body_parts"].split(',')))
-                access_token = request.data["access_token"]
+                access_token = request.headers.get("access-token-api")
                 if not isinstance(access_token, str):
                     raise TypeError
             except (AttributeError, KeyError, ValueError, TypeError):
@@ -132,7 +132,7 @@ class SaveExerciseView(APIView):
             except User.DoesNotExist:
                 return Response({"status": "user not found"}, status=status.HTTP_404_NOT_FOUND)
 
-            if not validate_user(user_id, request.data["access_token"]):
+            if not validate_user(user_id, access_token):
                 return Response({"status": "forbidden"}, status=status.HTTP_403_FORBIDDEN)
 
             if request.FILES.get("image", None) is not None:
@@ -176,7 +176,7 @@ class EditExerciseView(APIView):
             if serializer.is_valid():
                 try:
                     body_parts = list(map(int, request.data["body_parts"].split(',')))
-                    access_token = request.data["access_token"]
+                    access_token = request.headers.get("access-token-api")
                     if not isinstance(access_token, str):
                         raise TypeError
                 except (AttributeError, KeyError, ValueError, TypeError):
@@ -190,7 +190,7 @@ class EditExerciseView(APIView):
                     except BodyPart.DoesNotExist:
                         return Response({"status": "body part not found"}, status=status.HTTP_404_NOT_FOUND)
 
-                if not validate_user(exercise.user_id, request.data["access_token"]):
+                if not validate_user(exercise.user_id, access_token):
                     return Response({"status": "forbidden"}, status=status.HTTP_403_FORBIDDEN)
 
                 if request.FILES.get("image", None) is not None:
@@ -228,11 +228,15 @@ class EditExerciseView(APIView):
 
 # je potrebne validovat token
 class DeleteExerciseView(APIView):
-    def delete(self, request, exercise_id: int, access_token: str):
+    def delete(self, request, exercise_id: int):
         try:
             exercise = Exercise.objects.get(id=exercise_id)
         except Exercise.DoesNotExist:
             return Response({"status": "exercise not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        access_token = request.headers.get("access-token-api")
+        if not isinstance(access_token, str):
+            return Response({"status": "bad request"}, status=status.HTTP_400_BAD_REQUEST)
 
         if not validate_user(exercise.user_id, access_token):
             return Response({"status": "forbidden"}, status=status.HTTP_403_FORBIDDEN)

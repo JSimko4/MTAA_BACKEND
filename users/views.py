@@ -18,7 +18,9 @@ class RegisterView(APIView):
                 return Response({"status": "user name already registered"}, status=status.HTTP_409_CONFLICT)
 
             serializer.save()
-            return Response({"status": "success", "access_token": access_token}, status=status.HTTP_200_OK)
+
+            user_db = User.objects.get(access_token=access_token)
+            return Response({"status": "success", "id": user_db.id, "access_token": access_token}, status=status.HTTP_200_OK)
         else:
             return Response({"status": "bad request"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -35,7 +37,7 @@ class LoginView(APIView):
             if request.data["password"] != user_db.password:
                 return Response({"status": "wrong password"}, status=status.HTTP_401_UNAUTHORIZED)
 
-            return Response({"status": "success", "access_token": user_db.access_token}, status=status.HTTP_200_OK)
+            return Response({"status": "success", "id": user_db.id, "access_token": user_db.access_token}, status=status.HTTP_200_OK)
         else:
             return Response({"status": "bad request"}, status=status.HTTP_400_BAD_REQUEST)
 

@@ -193,6 +193,7 @@ class EditExerciseView(APIView):
                 if not validate_user(exercise.user_id, access_token):
                     return Response({"status": "forbidden"}, status=status.HTTP_403_FORBIDDEN)
 
+                img_save_path = ""
                 if request.FILES.get("image", None) is not None:
                     if os.path.exists(exercise.image_path):
                         os.remove(exercise.image_path)
@@ -210,6 +211,10 @@ class EditExerciseView(APIView):
                             f.write(chunk)
 
                 serializer.save()
+
+                exercise = Exercise.objects.get(id=exercise_id)
+                exercise.image_path = img_save_path
+                exercise.save()
 
                 # remove all exercise  body parts
                 for body_part in exercise.body_parts.all():
